@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WorkIndia Android — Migration Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ground: #F5F6F8;
+      --surface: #FFFFFF;
+      --surface-2: #EDF0F3;
+      --line: #DDE2E8;
+      --ink: #161E27;
+      --ink-2: #48586A;
+      --ink-3: #7C8B99;
+      --accent: #1E5F8C;
+      --good: #15803D;
+      --good-bg: rgba(21,128,61,.10);
+      --warn: #B45309;
+      --warn-bg: rgba(180,83,9,.10);
+      --bad: #DC2626;
+      --bad-bg: rgba(220,38,38,.10);
+      --info: #1D4ED8;
+      --info-bg: rgba(29,78,216,.10);
+      --shadow: 0 1px 2px rgba(16,30,39,.04), 0 10px 26px -14px rgba(16,30,39,.14);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --ground: #0D1218;
+        --surface: #151E27;
+        --surface-2: #1D2833;
+        --line: #2A3742;
+        --ink: #E7EDF2;
+        --ink-2: #A6B4C0;
+        --ink-3: #76858F;
+        --accent: #5FA8D8;
+        --good: #4ADE80;
+        --good-bg: rgba(74,222,128,.12);
+        --warn: #F5A524;
+        --warn-bg: rgba(245,165,36,.12);
+        --bad: #F87171;
+        --bad-bg: rgba(248,113,113,.12);
+        --info: #93C5FD;
+        --info-bg: rgba(147,197,253,.12);
+        --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 32px -16px rgba(0,0,0,.6);
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--ground);
+      color: var(--ink);
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 40px 20px 80px; }
+    .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+    h1, h2, h3 {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 560;
+      margin: 0;
+      text-wrap: balance;
+    }
+    .eyebrow {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .7rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      margin: 0 0 10px;
+    }
+    header h1 {
+      font-size: clamp(1.7rem, 3.4vw, 2.5rem);
+      line-height: 1.08;
+      letter-spacing: -.01em;
+    }
+    header .sub {
+      color: var(--ink-2);
+      margin-top: 12px;
+      max-width: 72ch;
+      font-size: 1.02rem;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .pill {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .72rem;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-2);
+      white-space: nowrap;
+    }
+    .pill.good { background: var(--good-bg); color: var(--good); border-color: transparent; }
+    .pill.warn { background: var(--warn-bg); color: var(--warn); border-color: transparent; }
+    .pill.bad { background: var(--bad-bg); color: var(--bad); border-color: transparent; }
+    .pill.info { background: var(--info-bg); color: var(--info); border-color: transparent; }
+    .pill.accent { background: var(--surface-2); color: var(--accent); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-top: 28px;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .stat .label {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--ink-3);
+    }
+    .stat .value {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.45rem;
+      margin-top: 4px;
+      letter-spacing: -.01em;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      margin: 28px 0 8px;
+      padding: 12px 0;
+      background: color-mix(in srgb, var(--ground) 92%, transparent);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 10px;
+    }
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .filters input[type="search"],
+    .filters select {
+      font: inherit;
+      font-size: .9rem;
+      padding: 9px 12px;
+      border-radius: 9px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink);
+      min-width: 160px;
+    }
+    .filters input[type="search"] { flex: 1; min-width: 220px; }
+    .chipbar { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      font: inherit;
+      font-size: .8rem;
+      font-weight: 500;
+      padding: 7px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--ink-2);
+      cursor: pointer;
+    }
+    .chip[aria-pressed="true"] {
+      background: var(--ink);
+      color: var(--ground);
+      border-color: var(--ink);
+    }
+    .result-count {
+      font-size: .85rem;
+      color: var(--ink-3);
+      font-family: "IBM Plex Mono", monospace;
+    }
+
+    .trains {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin: 22px 0 8px;
+    }
+    .train {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+    }
+    .train h3 { font-size: 1rem; margin-bottom: 6px; }
+    .train p { margin: 0; font-size: .85rem; color: var(--ink-2); }
+
+    .callout {
+      margin-top: 18px;
+      border-left: 4px solid var(--accent);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow);
+      font-size: .92rem;
+      color: var(--ink-2);
+    }
+    .callout strong { color: var(--ink); }
+
+    .category { margin-top: 34px; }
+    .category-head {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 10px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--ink);
+      margin-bottom: 12px;
+    }
+    .category-head .num {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .8rem;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .category-head h2 { font-size: 1.35rem; }
+    .category-head .cnt {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .75rem;
+      color: var(--ink-3);
+    }
+
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: auto;
+      box-shadow: var(--shadow);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .84rem;
+      min-width: 860px;
+    }
+    th, td {
+      text-align: left;
+      padding: 11px 12px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+    thead th {
+      font-family: "IBM Plex Mono", monospace;
+      font-weight: 500;
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--ink-3);
+      background: var(--surface-2);
+      position: sticky;
+      top: 0;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: color-mix(in srgb, var(--surface-2) 55%, transparent); }
+    td.id { font-family: "IBM Plex Mono", monospace; font-weight: 500; white-space: nowrap; width: 64px; }
+    td.name { font-weight: 560; min-width: 180px; }
+    td.evidence { color: var(--ink-2); max-width: 320px; }
+    td.decision-cell { white-space: nowrap; }
+    .empty {
+      margin-top: 40px;
+      text-align: center;
+      color: var(--ink-3);
+      padding: 40px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+    }
+    footer {
+      margin-top: 48px;
+      padding-top: 16px;
+      border-top: 1px solid var(--line);
+      font-size: .8rem;
+      color: var(--ink-3);
+    }
+    footer code {
+      font-family: "IBM Plex Mono", monospace;
+      font-size: .75rem;
+      background: var(--surface-2);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="eyebrow">WorkIndia · Android engineering</p>
+      <h1 id="title">Migration Dashboard</h1>
+      <p class="sub" id="subtitle"></p>
+      <div class="meta-row" id="meta-row"></div>
+    </header>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="callout" id="howto">
+      <strong>How to use:</strong> Filter and triage every migration. Decision values live in
+      <code class="mono">migrations.json</code> (<span class="mono">undecided</span> /
+      <span class="mono">do_now</span> / <span class="mono">do_next</span> /
+      <span class="mono">park</span> / <span class="mono">reject</span>).
+      When we iterate the plan, that file is updated and this page refreshes on next publish.
+    </div>
+
+    <h2 style="margin-top:28px;font-size:1.15rem">Suggested trains <span style="font-family:IBM Plex Sans,sans-serif;font-weight:400;font-size:.85rem;color:var(--ink-3)">(not decided)</span></h2>
+    <div class="trains" id="trains"></div>
+
+    <div class="toolbar">
+      <div class="filters">
+        <input id="search" type="search" placeholder="Search ID, name, evidence…" />
+        <select id="decision-filter" aria-label="Decision">
+          <option value="all">All decisions</option>
+        </select>
+        <select id="driver-filter" aria-label="Driver">
+          <option value="all">All drivers</option>
+        </select>
+        <select id="category-filter" aria-label="Category">
+          <option value="all">All categories</option>
+        </select>
+      </div>
+      <div class="chipbar" id="decision-chips"></div>
+      <div class="result-count" id="result-count"></div>
+    </div>
+
+    <div id="categories"></div>
+    <div class="empty" id="empty" hidden>No migrations match the current filters.</div>
+
+    <footer id="footer"></footer>
+  </div>
+
+  <script>
+    const DECISION_TONE = {
+      undecided: "neutral",
+      do_now: "good",
+      do_next: "info",
+      park: "warn",
+      reject: "bad",
+    };
+
+    const state = {
+      data: null,
+      search: "",
+      decision: "all",
+      driver: "all",
+      category: "all",
+    };
+
+    function pillClass(tone) {
+      if (tone === "good" || tone === "warn" || tone === "bad" || tone === "info" || tone === "accent") return "pill " + tone;
+      return "pill";
+    }
+
+    function decisionLabel(id, decisions) {
+      const d = (decisions || []).find((x) => x.id === id);
+      return d ? d.label : id;
+    }
+
+    function matches(item, cat) {
+      if (state.decision !== "all" && item.decision !== state.decision) return false;
+      if (state.driver !== "all" && item.driver !== state.driver) return false;
+      if (state.category !== "all" && String(cat.number) !== state.category) return false;
+      if (state.search) {
+        const q = state.search.toLowerCase();
+        const hay = [item.id, item.name, item.currentToTarget, item.driver, item.evidence, item.notes, item.owner]
+          .join(" ")
+          .toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    }
+
+    function render() {
+      const data = state.data;
+      if (!data) return;
+
+      document.getElementById("title").textContent = data.meta.title;
+      document.getElementById("subtitle").textContent = data.meta.subtitle;
+
+      const meta = document.getElementById("meta-row");
+      meta.innerHTML = [
+        `<span class="${pillClass("accent")}">Updated ${data.meta.updated}</span>`,
+        `<span class="pill">${data.meta.status}</span>`,
+        `<span class="pill mono">${data.meta.totalItems} items</span>`,
+        `<span class="pill">API 36 Play: ${data.meta.playApi36Deadline}</span>`,
+        `<span class="pill warn">API 37 Play: ${data.meta.playApi37Deadline}</span>`,
+      ].join("");
+
+      const b = data.baseline;
+      document.getElementById("stats").innerHTML = [
+        ["compile / target", `${b.compileSdk} / ${b.targetSdk}`],
+        ["minSdk", b.minSdk],
+        ["AGP / Gradle", `${b.agp} / ${b.gradle}`],
+        ["Kotlin", b.kotlin],
+        ["Compose BOM", b.composeBom],
+        ["Kotlin / Java", `${b.kotlinFiles} / ${b.javaFiles}`],
+        ["XML / DataBinding", `${b.xmlLayouts} / ${b.dataBindingLayouts}`],
+        ["Compose files", b.composeFiles],
+        ["Activities / Fragments", `${b.activities} / ${b.fragments}`],
+      ].map(([label, value]) => `
+        <div class="stat">
+          <div class="label">${label}</div>
+          <div class="value mono">${value}</div>
+        </div>
+      `).join("");
+
+      document.getElementById("trains").innerHTML = data.trains.map((t) => `
+        <div class="train">
+          <h3>${t.name}</h3>
+          <p>${t.detail}</p>
+        </div>
+      `).join("");
+
+      // Populate filters once
+      const decisionSelect = document.getElementById("decision-filter");
+      const driverSelect = document.getElementById("driver-filter");
+      const categorySelect = document.getElementById("category-filter");
+      const chips = document.getElementById("decision-chips");
+
+      if (!decisionSelect.dataset.ready) {
+        data.decisions.forEach((d) => {
+          const opt = document.createElement("option");
+          opt.value = d.id;
+          opt.textContent = d.label;
+          decisionSelect.appendChild(opt);
+        });
+        const drivers = [...new Set(data.categories.flatMap((c) => c.items.map((i) => i.driver)))].sort();
+        drivers.forEach((d) => {
+          const opt = document.createElement("option");
+          opt.value = d;
+          opt.textContent = d;
+          driverSelect.appendChild(opt);
+        });
+        data.categories.forEach((c) => {
+          const opt = document.createElement("option");
+          opt.value = String(c.number);
+          opt.textContent = `${c.number}. ${c.title}`;
+          categorySelect.appendChild(opt);
+        });
+
+        const counts = Object.fromEntries(data.decisions.map((d) => [d.id, 0]));
+        data.categories.forEach((c) => c.items.forEach((i) => { counts[i.decision] = (counts[i.decision] || 0) + 1; }));
+        chips.innerHTML = [
+          `<button type="button" class="chip" data-decision="all" aria-pressed="${state.decision === "all"}">All (${data.meta.totalItems})</button>`,
+          ...data.decisions.map((d) =>
+            `<button type="button" class="chip" data-decision="${d.id}" aria-pressed="${state.decision === d.id}">${d.label} (${counts[d.id] || 0})</button>`
+          ),
+        ].join("");
+        chips.querySelectorAll("button").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            state.decision = btn.dataset.decision;
+            decisionSelect.value = state.decision;
+            render();
+          });
+        });
+
+        decisionSelect.dataset.ready = "1";
+      } else {
+        chips.querySelectorAll("button").forEach((btn) => {
+          btn.setAttribute("aria-pressed", String(btn.dataset.decision === state.decision));
+        });
+      }
+
+      let shown = 0;
+      const host = document.getElementById("categories");
+      host.innerHTML = data.categories.map((cat) => {
+        const items = cat.items.filter((i) => matches(i, cat));
+        if (!items.length) return "";
+        shown += items.length;
+        return `
+          <section class="category" id="cat-${cat.number}">
+            <div class="category-head">
+              <span class="num">Section ${cat.number}</span>
+              <h2>${cat.title}</h2>
+              <span class="cnt">${items.length} shown</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Migration</th>
+                    <th>Current → Target</th>
+                    <th>Driver</th>
+                    <th>Decision</th>
+                    <th>Evidence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${items.map((item) => `
+                    <tr>
+                      <td class="id">${item.id}</td>
+                      <td class="name">${escapeHtml(item.name)}</td>
+                      <td>${escapeHtml(item.currentToTarget || "—")}</td>
+                      <td><span class="pill">${escapeHtml(item.driver)}</span></td>
+                      <td class="decision-cell"><span class="${pillClass(DECISION_TONE[item.decision] || "neutral")}">${escapeHtml(decisionLabel(item.decision, data.decisions))}</span></td>
+                      <td class="evidence">${escapeHtml(item.evidence)}</td>
+                    </tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        `;
+      }).join("");
+
+      document.getElementById("empty").hidden = shown > 0;
+      document.getElementById("result-count").textContent = `Showing ${shown} of ${data.meta.totalItems} migrations`;
+      document.getElementById("footer").innerHTML =
+        `Source of truth: <code>dashboard/migrations.json</code> · Baseline from <code>${escapeHtml(data.meta.sourceRepo)}</code> · ` +
+        `Edit decisions in JSON, republish, and this page updates for everyone with the link.`;
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    document.getElementById("search").addEventListener("input", (e) => {
+      state.search = e.target.value.trim();
+      render();
+    });
+    document.getElementById("decision-filter").addEventListener("change", (e) => {
+      state.decision = e.target.value;
+      render();
+    });
+    document.getElementById("driver-filter").addEventListener("change", (e) => {
+      state.driver = e.target.value;
+      render();
+    });
+    document.getElementById("category-filter").addEventListener("change", (e) => {
+      state.category = e.target.value;
+      render();
+    });
+
+    fetch("./migrations.json?v=" + Date.now())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to load migrations.json");
+        return r.json();
+      })
+      .then((data) => {
+        state.data = data;
+        render();
+      })
+      .catch((err) => {
+        document.getElementById("subtitle").textContent =
+          "Could not load migrations.json. Open this folder via a local server or GitHub Pages (file:// fetch is blocked).";
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
