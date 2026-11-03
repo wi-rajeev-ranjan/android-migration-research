@@ -6,7 +6,7 @@ Living research for WorkIndia Android (`workindiaandroid`) platform and moderniz
 
 Open the live dashboard (updates when this repo is updated):
 
-**https://workindia-private.github.io/android-migration-research/**
+**https://wi-rajeev-ranjan.github.io/android-migration-research/**
 
 Source of truth for every row:
 
